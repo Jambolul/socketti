@@ -11,20 +11,27 @@ app.get("/", (req, res) => {
 
 io.on("connection", (socket) => {
   console.log("a user connected");
+
+  socket.on("set username", (username) => {
+    socket.username = username;
+    console.log(`User ${username} connected`);
+  });
+
+  socket.on("join room", (room) => {
+    socket.join(room);
+    socket.room = room;
+    console.log(`User ${socket.username} joined room: ${room}`);
+  });
+
+  socket.on("chat message", (msg) => {
+    if (socket.room) {
+      io.to(socket.room).emit("chat message", `${socket.username}: ${msg}`);
+      console.log(`message from ${socket.username} in ${socket.room}: ${msg}`);
+    }
+  });
+
   socket.on("disconnect", () => {
     console.log("user disconnected");
-  });
-});
-
-io.on("connection", (socket) => {
-  socket.on("chat message", (msg) => {
-    console.log("message: " + msg);
-  });
-});
-
-io.on("connection", (socket) => {
-  socket.on("chat message", (msg) => {
-    io.emit("chat message", msg);
   });
 });
 

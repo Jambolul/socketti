@@ -1,13 +1,52 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Socket.IO chat</title>
+    <title>Socket.IO Chat with Rooms</title>
     <style>
       body {
         margin: 0;
         padding-bottom: 3rem;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
           Helvetica, Arial, sans-serif;
+      }
+
+      #usernameForm,
+      #roomSelection {
+        background: rgba(0, 0, 0, 0.15);
+        padding: 0.25rem;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      #usernameForm > input,
+      #roomSelection > button,
+      #roomSelection > select {
+        border: none;
+        padding: 0.5rem;
+        margin: 0.25rem;
+        border-radius: 5px;
+        width: 200px;
+        text-align: center;
+      }
+
+      #usernameForm > button,
+      #roomSelection > button {
+        background: #333;
+        border: none;
+        padding: 0.5rem 1rem;
+        margin: 0.25rem;
+        border-radius: 3px;
+        outline: none;
+        color: #fff;
+      }
+
+      #chat {
+        display: none;
       }
 
       #form {
@@ -22,6 +61,7 @@
         box-sizing: border-box;
         backdrop-filter: blur(10px);
       }
+
       #input {
         border: none;
         padding: 0 1rem;
@@ -29,9 +69,11 @@
         border-radius: 2rem;
         margin: 0.25rem;
       }
+
       #input:focus {
         outline: none;
       }
+
       #form > button {
         background: #333;
         border: none;
@@ -47,26 +89,75 @@
         margin: 0;
         padding: 0;
       }
+
       #messages > li {
         padding: 0.5rem 1rem;
       }
+
       #messages > li:nth-child(odd) {
         background: #efefef;
       }
     </style>
   </head>
   <body>
-    <ul id="messages"></ul>
-    <form id="form" action="">
-      <input id="input" autocomplete="off" /><button>Send</button>
-    </form>
+    <div id="usernameForm">
+      <input
+        id="usernameInput"
+        autocomplete="off"
+        placeholder="Enter username"
+      />
+      <button id="submitUsername">Join Chat</button>
+    </div>
+
+    <div id="roomSelection" style="display: none">
+      <select id="roomSelect">
+        <option value="room1">Room 1</option>
+        <option value="room2">Room 2</option>
+        <option value="room3">Room 3</option>
+      </select>
+      <button id="joinRoom">Join Room</button>
+    </div>
+
+    <div id="chat">
+      <ul id="messages"></ul>
+      <form id="form" action="">
+        <input id="input" autocomplete="off" /><button>Send</button>
+      </form>
+    </div>
+
     <script src="/socket.io/socket.io.js"></script>
     <script>
       var socket = io();
-
       var messages = document.getElementById("messages");
       var form = document.getElementById("form");
       var input = document.getElementById("input");
+      var usernameForm = document.getElementById("usernameForm");
+      var roomSelection = document.getElementById("roomSelection");
+      var chatContainer = document.getElementById("chat");
+      var usernameInput = document.getElementById("usernameInput");
+      var roomSelect = document.getElementById("roomSelect");
+
+      document
+        .getElementById("submitUsername")
+        .addEventListener("click", function () {
+          var username = usernameInput.value.trim();
+          if (username) {
+            socket.emit("set username", username);
+            usernameForm.style.display = "none";
+            roomSelection.style.display = "block";
+          }
+        });
+
+      document
+        .getElementById("joinRoom")
+        .addEventListener("click", function () {
+          var room = roomSelect.value;
+          if (room) {
+            socket.emit("join room", room);
+            roomSelection.style.display = "none";
+            chatContainer.style.display = "block";
+          }
+        });
 
       form.addEventListener("submit", function (e) {
         e.preventDefault();
